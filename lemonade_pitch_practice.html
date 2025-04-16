@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lemonade Pitch Practice</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #fcfaf4; color: #333; }
+    h1 { color: #0b66c2; }
+    button { background: #0b66c2; color: white; border: none; padding: 10px 20px; cursor: pointer; font-size: 16px; border-radius: 6px; margin-right: 10px; }
+    button:disabled { background: #ccc; }
+    #feedback { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; background: #e8f3ff; }
+    textarea { width: 100%; height: 120px; margin-top: 10px; font-size: 14px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+
+<h1>🎤 Practice Your Lemonade Pitch</h1>
+<p>Record your pitch and see how well it covers the key talking points.</p>
+
+<button id="recordBtn">Start Recording</button>
+<button id="stopBtn" disabled>Stop</button>
+<button id="restartBtn" disabled>Restart</button>
+
+<h3>Your Pitch Transcript:</h3>
+<textarea id="transcript" placeholder="Your transcript will appear here..." readonly></textarea>
+
+<div id="feedback"></div>
+
+<script>
+let recognition;
+let transcript = "";
+
+if ('webkitSpeechRecognition' in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  recognition.onresult = (event) => {
+    transcript = event.results[0][0].transcript.toLowerCase();
+    document.getElementById("transcript").value = transcript;
+    document.getElementById("restartBtn").disabled = false;
+  };
+
+  recognition.onerror = (event) => {
+    console.error(event.error);
+  };
+}
+
+document.getElementById("recordBtn").onclick = () => {
+  recognition.start();
+  document.getElementById("recordBtn").disabled = true;
+  document.getElementById("stopBtn").disabled = false;
+  document.getElementById("feedback").innerHTML = "";
+  document.getElementById("transcript").value = "";
+};
+
+document.getElementById("stopBtn").onclick = () => {
+  recognition.stop();
+  document.getElementById("recordBtn").disabled = false;
+  document.getElementById("stopBtn").disabled = true;
+  analyzeTranscript(transcript);
+};
+
+document.getElementById("restartBtn").onclick = () => {
+  document.getElementById("transcript").value = "";
+  document.getElementById("feedback").innerHTML = "";
+  transcript = "";
+  document.getElementById("restartBtn").disabled = true;
+};
+
+function analyzeTranscript(text) {
+  const feedback = [];
+  const wordCount = text.trim().split(" ").length;
+
+  const includes = (phrases) => phrases.some(p => text.includes(p));
+
+  // Core Selling Point
+  if (includes(["best on the block", "best lemonade", "top lemonade"])) {
+    feedback.push("✅ You led with a compelling selling point — nice way to grab attention.");
+  } else {
+    feedback.push("🛠 Consider clearly stating what makes your lemonade stand out to hook the listener early.");
+  }
+
+  // Ingredients
+  if (text.includes("organic")) {
+    feedback.push("✅ You mentioned organic lemons — builds credibility with quality-focused customers.");
+  } else {
+    feedback.push("🛠 Try including organic lemons to signal health-conscious or premium value.");
+  }
+
+  if (includes(["natural sweeteners", "made daily", "freshly made"])) {
+    feedback.push("✅ You highlighted freshness or natural ingredients — a strong trust-builder.");
+  } else {
+    feedback.push("🛠 Mentioning natural sweeteners or daily prep helps reinforce the quality and care.");
+  }
+
+  // Audience tailoring
+  if (text.includes("pink lemonade")) {
+    feedback.push("✅ Good call including a kid-friendly option.");
+  } else {
+    feedback.push("🛠 Consider referencing pink lemonade to show you’ve got something fun for kids.");
+  }
+
+  if (includes(["alcoholic", "for adults", "boozy"])) {
+    feedback.push("✅ You included adult-specific offerings — smart to show range.");
+  } else {
+    feedback.push("🛠 Mentioning options for adults expands your audience and shows flexibility.");
+  }
+
+  // Content quality over length
+  if (wordCount < 10) {
+    feedback.push("🗣️ Your pitch was very short — expand on why your lemonade matters to different buyers.");
+  } else if (wordCount > 60) {
+    feedback.push("🗣️ You went long — make sure every point ties directly back to value for the customer.");
+  } else {
+    let valuePoints = 0;
+    if (includes(["organic", "natural", "fresh", "daily"])) valuePoints++;
+    if (includes(["pink", "kid", "child"])) valuePoints++;
+    if (includes(["adult", "alcoholic", "boozy"])) valuePoints++;
+    if (valuePoints >= 2) {
+      feedback.push("🗣️ Nice balance — you covered the essentials and kept it relevant.");
+    } else {
+      feedback.push("🗣️ Think about how each sentence helps the customer understand why they should care.");
+    }
+  }
+
+  document.getElementById("feedback").innerHTML = "<strong>Feedback:</strong><br>" + feedback.join("<br>");
+}
+</script>
+
+</body>
+</html>
